@@ -233,3 +233,21 @@ def test_sample_ids_are_unique():
     samples = load_samples(FIXTURE)
 
     assert len({sample.id for sample in samples}) == len(samples)
+
+
+# --- reading a normalised phrase back ------------------------------------
+
+
+def test_a_quoted_phrase_gets_its_pronoun_back():
+    from app.text import as_spoken
+
+    assert as_spoken("yesterday i go") == "yesterday I go"
+    assert as_spoken("i have twenty eight years") == "I have twenty eight years"
+
+
+def test_nothing_else_about_the_quotation_is_invented():
+    from app.text import as_spoken
+
+    # No capitals, no punctuation, no rewriting. It is a quotation.
+    assert as_spoken("responsible of") == "responsible of"
+    assert as_spoken("i think it is fine") == "I think it is fine"

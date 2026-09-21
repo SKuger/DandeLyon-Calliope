@@ -53,7 +53,7 @@
   <tr><th>Said</th><th>Should be</th><th>Why</th></tr>
   {% for error in errors %}
   <tr>
-    <td class="wrong">{{ error.original }}</td>
+    <td class="wrong">{{ error.original | spoken }}</td>
     <td class="right">{{ error.correction }}</td>
     <td>{{ error.explanation }}<br><span class="muted">{{ error.detector }}</span></td>
   </tr>

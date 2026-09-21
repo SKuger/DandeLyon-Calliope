@@ -125,3 +125,19 @@ def word_error_rate(reference: str, hypothesis: str) -> float:
             )
         previous = current
     return previous[-1] / len(source)
+
+
+_STANDALONE_I = re.compile(r"\bi\b")
+
+
+def as_spoken(phrase: str) -> str:
+    """Make a normalised phrase readable again, for display only.
+
+    The assessor works on normalised text, so a finding quotes the
+    transcript in lower case with the punctuation gone -- which is what
+    the two guards need and not what anyone wants to read on a card that
+    says "you said this". This restores the one thing that actually looks
+    wrong, the lower-case "I", and nothing else: guessing at capitals and
+    punctuation would be rewriting the quotation.
+    """
+    return _STANDALONE_I.sub("I", phrase)

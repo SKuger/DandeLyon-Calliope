@@ -63,10 +63,14 @@ from app.store import (
     session_detail,
     sessions,
 )
+from app.text import as_spoken
 
 logger = logging.getLogger(__name__)
 
 TEMPLATES = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
+# Findings quote the transcript in normalised form, which is what the
+# assessor's guards need and not what anyone wants to read on a card.
+TEMPLATES.env.filters["spoken"] = as_spoken
 
 #: What the dashboard charts. Each of these is arithmetic over a
 #: transcript, which is what makes a line through them mean anything.

@@ -57,7 +57,7 @@
   <tr><th>Phrase</th><th>Category</th><th>Times</th><th>Last</th></tr>
   {% for habit in habits %}
   <tr>
-    <td class="wrong said">{{ habit.phrase }}</td>
+    <td class="wrong said">{{ habit.phrase | spoken }}</td>
     <td>{{ habit.category }}</td>
     <td>{{ habit.occurrences }}</td>
     <td class="muted">{{ habit.last_seen[:10] }}</td>

@@ -14,7 +14,7 @@
 {% for exercise in exercises %}
 <fieldset data-error="{{ exercise.error_id }}" data-target="{{ exercise.target }}">
   <legend>{{ exercise.category }} · {{ exercise.kind }}</legend>
-  <p>{{ exercise.prompt }}</p>
+  <p>{{ exercise.prompt | spoken }}</p>
   <p>
     <button class="start">Record answer</button>
     <button class="stop" disabled>Stop</button>
