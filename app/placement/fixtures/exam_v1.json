@@ -1,0 +1,315 @@
+{
+  "version": "v1",
+  "about": [
+    "Fixed on 2026-09-21 and not to be edited. Every stored sitting keeps",
+    "the fingerprint of this file; changing an item changes the",
+    "fingerprint, and two sittings with different fingerprints are refused",
+    "for comparison rather than misreported as progress.",
+    "",
+    "If an item turns out to be bad, add exam_v2.json. The baseline is",
+    "only worth having because it did not move."
+  ],
+  "sections": [
+    {
+      "id": "grammar",
+      "skill": "grammar",
+      "kind": "choice",
+      "instructions": "Choose the option that a native speaker would say.",
+      "items": [
+        {
+          "id": "g01",
+          "prompt": "Yesterday the deploy failed, so ___ the release.",
+          "options": ["I rollback", "I rolled back", "I have rolled back"],
+          "answer": 1,
+          "targets": ["past_simple"]
+        },
+        {
+          "id": "g02",
+          "prompt": "___ on this team since 2021.",
+          "options": ["I work", "I am working", "I have worked"],
+          "answer": 2,
+          "targets": ["present_perfect"]
+        },
+        {
+          "id": "g03",
+          "prompt": "We ___ the migration for three months now.",
+          "options": [
+            "are planning",
+            "have been planning",
+            "plan"
+          ],
+          "answer": 1,
+          "targets": ["present_perfect_continuous"]
+        },
+        {
+          "id": "g04",
+          "prompt": "The service is ___ the payment provider.",
+          "options": ["dependent of", "depending of", "dependent on"],
+          "answer": 2,
+          "targets": ["preposition"]
+        },
+        {
+          "id": "g05",
+          "prompt": "Who is ___ the release notes?",
+          "options": [
+            "responsible for writing",
+            "responsible of writing",
+            "responsible to write"
+          ],
+          "answer": 0,
+          "targets": ["preposition"]
+        },
+        {
+          "id": "g06",
+          "prompt": "Do you know ___?",
+          "options": [
+            "where is the staging environment",
+            "where the staging environment is",
+            "where staging environment is"
+          ],
+          "answer": 1,
+          "targets": ["word_order", "embedded_question"]
+        },
+        {
+          "id": "g07",
+          "prompt": "If the queue had been drained, the alert ___.",
+          "options": [
+            "would not fire",
+            "would not have fired",
+            "will not fire"
+          ],
+          "answer": 1,
+          "targets": ["third_conditional"]
+        },
+        {
+          "id": "g08",
+          "prompt": "The team ___ agreed on the approach.",
+          "options": ["have", "has", "is"],
+          "answer": 1,
+          "targets": ["agreement"],
+          "note": "American usage; the exam is consistent about it."
+        },
+        {
+          "id": "g09",
+          "prompt": "I need ___ about the incident before I can answer.",
+          "options": ["more informations", "more information", "more informs"],
+          "answer": 1,
+          "targets": ["countability"]
+        },
+        {
+          "id": "g10",
+          "prompt": "This approach is ___ than the one we had.",
+          "options": ["more simple", "simpler", "most simple"],
+          "answer": 1,
+          "targets": ["comparative"]
+        },
+        {
+          "id": "g11",
+          "prompt": "I am thinking ___ the scheduler with a queue.",
+          "options": [
+            "to replace",
+            "about replacing",
+            "in replacing"
+          ],
+          "answer": 1,
+          "targets": ["preposition", "gerund"]
+        },
+        {
+          "id": "g12",
+          "prompt": "By the time you read this, the cache ___ already.",
+          "options": [
+            "will have expired",
+            "will expire",
+            "would expire"
+          ],
+          "answer": 0,
+          "targets": ["future_perfect"]
+        }
+      ]
+    },
+    {
+      "id": "lexis",
+      "skill": "lexical_range",
+      "kind": "choice",
+      "instructions": "Choose the word or phrase that fits the sentence best.",
+      "items": [
+        {
+          "id": "v01",
+          "prompt": "I need to ___ the sprint review at nine.",
+          "options": ["assist", "attend", "assist to"],
+          "answer": 1,
+          "targets": ["false_friend"]
+        },
+        {
+          "id": "v02",
+          "prompt": "The client is very ___ about response times.",
+          "options": ["sensible", "sensitive", "sensed"],
+          "answer": 1,
+          "targets": ["false_friend"]
+        },
+        {
+          "id": "v03",
+          "prompt": "We ___ the outage was caused by a bad config.",
+          "options": ["realised", "realised of", "noticed of"],
+          "answer": 0,
+          "targets": ["false_friend"]
+        },
+        {
+          "id": "v04",
+          "prompt": "Let's ___ this decision until we have the numbers.",
+          "options": ["postpone", "posture", "prorogue"],
+          "answer": 0,
+          "targets": ["register"]
+        },
+        {
+          "id": "v05",
+          "prompt": "The two services are tightly ___.",
+          "options": ["coupled", "attached", "glued"],
+          "answer": 0,
+          "targets": ["technical_collocation"]
+        },
+        {
+          "id": "v06",
+          "prompt": "I want to ___ a concern about the timeline.",
+          "options": ["raise", "lift", "elevate"],
+          "answer": 0,
+          "targets": ["collocation"]
+        },
+        {
+          "id": "v07",
+          "prompt": "That estimate seems ___ to me.",
+          "options": ["optimist", "optimistic", "optimism"],
+          "answer": 1,
+          "targets": ["word_form"]
+        },
+        {
+          "id": "v08",
+          "prompt": "We should ___ the scope before Friday.",
+          "options": ["narrow down", "narrow out", "shorten down"],
+          "answer": 0,
+          "targets": ["phrasal_verb"]
+        },
+        {
+          "id": "v09",
+          "prompt": "The migration ___ smoothly in the end.",
+          "options": ["went off", "passed off", "went away"],
+          "answer": 0,
+          "targets": ["phrasal_verb"]
+        },
+        {
+          "id": "v10",
+          "prompt": "I'd rather we ___ this in writing.",
+          "options": ["keep", "kept", "keeping"],
+          "answer": 1,
+          "targets": ["subjunctive"]
+        }
+      ]
+    },
+    {
+      "id": "listening",
+      "skill": "listening",
+      "kind": "listening",
+      "instructions": "Listen once, then answer. The audio is generated from the script when a voice is available; without one this section is skipped rather than shown as text.",
+      "items": [
+        {
+          "id": "l01",
+          "script": "So the plan changed this morning. We were going to ship the new checkout on Thursday, but legal came back with two questions about the refund flow, so now we're holding it until they sign off. Everything else in the release goes out as planned.",
+          "prompt": "What is happening on Thursday?",
+          "options": [
+            "The whole release is postponed.",
+            "Everything except the checkout ships.",
+            "Legal reviews the refund flow."
+          ],
+          "answer": 1
+        },
+        {
+          "id": "l02",
+          "script": "I wouldn't say the migration failed exactly. It finished, but it took about four times longer than we estimated, and two of the background jobs had to be run again by hand afterwards.",
+          "prompt": "How does the speaker describe the migration?",
+          "options": [
+            "It failed and was rolled back.",
+            "It succeeded, slowly and with manual work.",
+            "It has not finished yet."
+          ],
+          "answer": 1
+        },
+        {
+          "id": "l03",
+          "script": "Honestly, if it were up to me, I'd have gone with the managed service from the start. We'd be paying more every month, but we wouldn't have spent the last three weekends on it.",
+          "prompt": "What is the speaker saying about the managed service?",
+          "options": [
+            "They chose it and regret the cost.",
+            "They did not choose it and regret that.",
+            "They are about to migrate to it."
+          ],
+          "answer": 1
+        },
+        {
+          "id": "l04",
+          "script": "Just a heads up before the call: she's not going to ask you about the architecture. What she wants to know is why the incident took six hours to detect, so have that timeline ready.",
+          "prompt": "What should the listener prepare?",
+          "options": [
+            "An architecture diagram.",
+            "The detection timeline for the incident.",
+            "A six hour estimate."
+          ],
+          "answer": 1
+        },
+        {
+          "id": "l05",
+          "script": "We've been through this twice already. Every time we add a retry, the duplicate rate goes up, and every time we take it out, the support queue fills with failed payments. There isn't a version of this where we don't pick one.",
+          "prompt": "What is the speaker's point?",
+          "options": [
+            "The retry logic has a bug.",
+            "Both options have a cost and one must be chosen.",
+            "The support queue should be ignored."
+          ],
+          "answer": 1
+        },
+        {
+          "id": "l06",
+          "script": "Right, one last thing and then I'll let you go. The contractor's last day is the fifteenth, so anything that only he knows how to do needs to be written down or handed over before then. Not after.",
+          "prompt": "What is the deadline for?",
+          "options": [
+            "Hiring a replacement contractor.",
+            "Transferring the contractor's knowledge.",
+            "Finishing the contractor's current task."
+          ],
+          "answer": 1
+        }
+      ]
+    },
+    {
+      "id": "speaking",
+      "skill": "speaking",
+      "kind": "spoken",
+      "instructions": "Speak for the whole time. Do not prepare: the point is to measure what comes out unrehearsed, and a rehearsed answer in March cannot be compared with an unrehearsed one in September.",
+      "items": [
+        {
+          "id": "s01",
+          "prompt": "Describe what you worked on yesterday, from the start of the day to the end. Include something that did not go as planned.",
+          "seconds": 90,
+          "targets": ["past_simple", "past_continuous"]
+        },
+        {
+          "id": "s02",
+          "prompt": "Explain a technical decision your team made in the last year, and what you would do differently now.",
+          "seconds": 120,
+          "targets": ["present_perfect", "conditional"]
+        },
+        {
+          "id": "s03",
+          "prompt": "You are in a job interview. Answer: what are you looking for in your next role, and why are you leaving your current one?",
+          "seconds": 90,
+          "targets": ["present_continuous", "future_going_to"]
+        },
+        {
+          "id": "s04",
+          "prompt": "Disagree with this statement and defend your position: 'Code review slows teams down more than it helps them.'",
+          "seconds": 90,
+          "targets": ["conditional", "modal"]
+        }
+      ]
+    }
+  ]
+}
