@@ -1,0 +1,4 @@
+# Local speech recognition. Optional: without it the app falls back to a
+# deterministic transcriber, which is what lets the suite and the
+# container run on a machine with no model weights.
+faster-whisper==1.2.1

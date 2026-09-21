@@ -1,0 +1,7 @@
+# Defaults plus import sorting and a few bug-prone patterns. Nothing
+# stylistic beyond that: the linter is here to catch mistakes, not to
+# have opinions about formatting.
+line-length = 88
+
+[lint]
+select = ["E", "F", "I", "UP", "B"]

@@ -1,0 +1,28 @@
+# The recordings are a real person's voice talking about their life. They
+# never leave the machine, so the ignore rules come before the first file.
+recordings/
+data/
+*.db
+*.db-wal
+*.db-shm
+*.wav
+*.mp3
+*.m4a
+*.ogg
+
+# ASR and TTS weights: hundreds of megabytes, downloaded on demand.
+models/
+
+.env
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+.DS_Store
+
+# The commission document, in Spanish. The repository is written in
+# English and this is not part of it.
+BRIEF.md
