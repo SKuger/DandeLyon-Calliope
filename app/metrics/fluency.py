@@ -254,11 +254,12 @@ def count_self_corrections(utterances: list[list[Word]]) -> int:
     """Restarts: a word repeated, or an explicit repair marker.
 
     Deliberately narrow. A real disfluency annotation scheme needs the
-    audio and a human; this catches the two patterns that are unambiguous
-    in text -- an immediately repeated word, and someone saying "sorry"
-    or "I mean" mid-sentence -- and undercounts everything else. An
-    undercount that moves consistently is still a usable trend line; a
-    guess that moves with the model's mood is not.
+    audio and a human; this catches the three patterns that are
+    unambiguous in text -- a repeated word, a repeated two-word run
+    ("I am, I am..."), and someone saying "sorry" or "I mean"
+    mid-sentence -- and undercounts everything else. An undercount that
+    moves consistently is still a usable trend line; a guess that moves
+    with the model's mood is not.
     """
     total = 0
     for utterance in utterances:
@@ -267,6 +268,15 @@ def count_self_corrections(utterances: list[list[Word]]) -> int:
             1
             for first, second in pairwise(tokens)
             if first == second and first not in FILLERS
+        )
+        # The repeated run is the commonest restart in his recordings and
+        # the unigram check walks straight past it: "I am I am" has no two
+        # adjacent identical words.
+        total += sum(
+            1
+            for index in range(len(tokens) - 3)
+            if tokens[index : index + 2] == tokens[index + 2 : index + 4]
+            and tokens[index] != tokens[index + 1]
         )
         total += count_phrases(tokens, REPAIR_MARKERS)
     return total

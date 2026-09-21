@@ -37,6 +37,7 @@ from pathlib import Path
 from typing import Any
 
 from app.asr.base import Transcript, dump_transcript, transcript_from_payload
+from app.review.scheduler import ReviewState
 
 SCHEMA_VERSION = 1
 
@@ -447,3 +448,136 @@ def placements(connection: sqlite3.Connection) -> list[dict[str, Any]]:
         }
         for row in rows
     ]
+
+
+# --- review schedule -----------------------------------------------------
+#
+# The schedule lives beside the corpus rather than in its own store: every
+# query the review queue needs is a join between an error and its next
+# date, and splitting them would mean keeping two files consistent for no
+# gain at this size.
+
+
+def save_review(connection: sqlite3.Connection, state: ReviewState) -> None:
+    """Write the next date for one error. Last write wins.
+
+    An upsert rather than an insert because a review is an update to a
+    single card, and a schedule that accumulated rows would eventually
+    disagree with itself about when a card is due.
+    """
+    with transaction(connection):
+        connection.execute(
+            """
+            INSERT INTO review
+                (error_id, due_at, interval_days, ease, repetitions, lapses,
+                 last_reviewed_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(error_id) DO UPDATE SET
+                due_at = excluded.due_at,
+                interval_days = excluded.interval_days,
+                ease = excluded.ease,
+                repetitions = excluded.repetitions,
+                lapses = excluded.lapses,
+                last_reviewed_at = excluded.last_reviewed_at
+            """,
+            (
+                state.error_id,
+                state.due_at,
+                state.interval_days,
+                state.ease,
+                state.repetitions,
+                state.lapses,
+                state.last_reviewed_at,
+            ),
+        )
+
+
+def get_review(
+    connection: sqlite3.Connection, error_id: str
+) -> ReviewState | None:
+    row = connection.execute(
+        "SELECT * FROM review WHERE error_id = ?", (error_id,)
+    ).fetchone()
+    return None if row is None else _as_review(row)
+
+
+def _as_review(row: sqlite3.Row) -> ReviewState:
+    return ReviewState(
+        error_id=row["error_id"],
+        due_at=row["due_at"],
+        interval_days=row["interval_days"],
+        ease=row["ease"],
+        repetitions=row["repetitions"],
+        lapses=row["lapses"],
+        last_reviewed_at=row["last_reviewed_at"],
+    )
+
+
+def due_reviews(
+    connection: sqlite3.Connection, at: str, limit: int = 20
+) -> list[tuple[StoredError, ReviewState]]:
+    """The queue, oldest due first.
+
+    Ordered by due date and not by category, so a bad week with
+    prepositions cannot crowd everything else out of the queue for a
+    fortnight.
+    """
+    rows = connection.execute(
+        """
+        SELECT error.*, review.due_at AS r_due, review.interval_days AS r_interval,
+               review.ease AS r_ease, review.repetitions AS r_reps,
+               review.lapses AS r_lapses,
+               review.last_reviewed_at AS r_last
+        FROM review
+        JOIN error ON error.id = review.error_id
+        WHERE review.due_at <= ?
+        ORDER BY review.due_at
+        LIMIT ?
+        """,
+        (at, limit),
+    )
+    return [
+        (
+            _as_error(row),
+            ReviewState(
+                error_id=row["id"],
+                due_at=row["r_due"],
+                interval_days=row["r_interval"],
+                ease=row["r_ease"],
+                repetitions=row["r_reps"],
+                lapses=row["r_lapses"],
+                last_reviewed_at=row["r_last"],
+            ),
+        )
+        for row in rows
+    ]
+
+
+def mastery(connection: sqlite3.Connection) -> dict[str, int]:
+    """The curve the dashboard draws: how much of the corpus has stuck.
+
+    `mature` is an interval past three weeks, which is the point at which
+    a card stops being something he is currently learning. `unscheduled`
+    exists because an error with no review row is a bug in the pipeline,
+    and a number nobody can see is a bug nobody fixes.
+    """
+    row = connection.execute(
+        """
+        SELECT
+          (SELECT COUNT(*) FROM error) AS total,
+          (SELECT COUNT(*) FROM review WHERE repetitions = 0) AS learning,
+          (SELECT COUNT(*) FROM review
+             WHERE repetitions > 0 AND interval_days < 21) AS young,
+          (SELECT COUNT(*) FROM review WHERE interval_days >= 21) AS mature,
+          (SELECT COUNT(*) FROM review WHERE lapses > 0) AS lapsed
+        """
+    ).fetchone()
+    counted = row["learning"] + row["young"] + row["mature"]
+    return {
+        "total": row["total"],
+        "learning": row["learning"],
+        "young": row["young"],
+        "mature": row["mature"],
+        "lapsed": row["lapsed"],
+        "unscheduled": row["total"] - counted,
+    }

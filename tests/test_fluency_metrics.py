@@ -285,3 +285,9 @@ def test_metrics_serialise_for_storage():
     assert payload["words"] == 6
     assert payload["pauses"]["count"] == 0
     assert isinstance(payload["tenses_used"], tuple)
+
+
+def test_a_repeated_two_word_run_is_a_restart():
+    # "I am I am" has no two adjacent identical words, so the unigram
+    # check walks straight past the commonest restart in the recordings.
+    assert measure(spoken("I am I am responsible for it")).self_corrections == 1
