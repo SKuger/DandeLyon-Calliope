@@ -1,0 +1,66 @@
+{
+  "about": [
+    "Seven invented practice sessions, written for this repository.",
+    "",
+    "They are NOT recordings of the user. The brief is explicit that any",
+    "transcript published here has to be made for the purpose, and these",
+    "were: the mistakes are the ones the error corpus is designed around,",
+    "spread over a week so the dashboard has something to draw.",
+    "",
+    "Word timings are generated deterministically from `pace` and `pauses`",
+    "rather than measured, so every number on the demo dashboard is real",
+    "arithmetic over fake input. The shape of the week is plausible; it is",
+    "not evidence about anybody."
+  ],
+  "sessions": [
+    {
+      "day": 0,
+      "prompt_id": "s01",
+      "pace": 0.42,
+      "pauses": [6, 14, 21],
+      "text": "Yesterday I go to the office early because we have a problem with the payment queue. Um, the retry logic was duplicating the charges, and I am responsible of that service, so I spent, este, almost all the morning reading logs. I have twenty eight years and I never see an incident like this one."
+    },
+    {
+      "day": 1,
+      "prompt_id": "s01",
+      "pace": 0.40,
+      "pauses": [8, 19],
+      "text": "Today was more easy. I finish the fix in the morning and my colleague work on the tests. We depend of a third party API for the payments, so, uh, we cannot test everything locally. I am thinking to change that this quarter."
+    },
+    {
+      "day": 2,
+      "prompt_id": "s02",
+      "pace": 0.38,
+      "pauses": [5, 12, 24],
+      "text": "Last week we take a decision about the database. Since three months I am reading about sharding, and, um, I don't have no experience with it in production. I need more informations before I commit the team to that."
+    },
+    {
+      "day": 3,
+      "prompt_id": "s03",
+      "pace": 0.36,
+      "pauses": [9],
+      "text": "I am developer with six years of experience. What I am looking for is a team where I can, uh, talk with the people who use the software. In my current job I am responsible of the pipeline but I never see a customer."
+    },
+    {
+      "day": 4,
+      "prompt_id": "s02",
+      "pace": 0.35,
+      "pauses": [11, 26],
+      "text": "The migration went well in the end. It took four times longer than we estimated and two jobs had to be run again by hand, but nothing was lost. If I did it again I would move the read traffic first."
+    },
+    {
+      "day": 5,
+      "prompt_id": "s04",
+      "pace": 0.34,
+      "pauses": [7],
+      "text": "I disagree with that. Code review is slow when the pull request is big, so the problem is the size and not the review. My team have six people and we review everything, and we ship every Thursday."
+    },
+    {
+      "day": 6,
+      "prompt_id": "s01",
+      "pace": 0.33,
+      "pauses": [10, 18],
+      "text": "This morning I reviewed two pull requests and deployed the new version to staging. Then I wrote the notes for the architecture discussion tomorrow, which I expect will be difficult because we still disagree about the database."
+    }
+  ]
+}

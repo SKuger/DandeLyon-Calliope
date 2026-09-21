@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test:
+    name: default install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements-dev.txt
+
+      - run: ruff check app tests experiments
+
+      # No keys, no network, no model weights. That is the contract, and
+      # the suite is where it is enforced: the transcriber is a fixture,
+      # the assessor is the rule set, and the database is a temp file.
+      - run: pytest -q
+
+  asr:
+    name: with speech recognition
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      # Installed together on purpose. faster-whisper brings CTranslate2,
+      # tokenizers and ONNX Runtime, and a version conflict with the web
+      # stack only appears when someone installs both into one
+      # environment -- which is exactly what the README tells him to do.
+      - run: pip install -r requirements-dev.txt -r requirements-asr.txt
+
+      # Still no weights: nothing in the suite downloads a model, and a
+      # test that started to would show up here as a four-minute job.
+      - run: pytest -q
