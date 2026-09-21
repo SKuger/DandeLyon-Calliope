@@ -37,9 +37,15 @@ from app.text import normalize, span_confidence
 logger = logging.getLogger(__name__)
 
 #: Below this mean per-word confidence, a correction is more likely to be
-#: about the transcriber than about the speaker. Calibrated against the
-#: fidelity experiment: on the accented recordings the words Whisper got
-#: wrong sat well below this, and the words it got right sat well above.
+#: about the transcriber than about the speaker.
+#:
+#: Measured rather than guessed. On the accented recordings
+#: (`experiments/whisper_fidelity/results/confidence.md`) a word Whisper
+#: actually heard has a median confidence of 0.94, and a word it invented
+#: has 0.47. A floor here drops 62% of the invented words and takes 13% of
+#: the real ones with them -- a deliberate trade in that direction,
+#: because a correction of something he did not say costs more than a
+#: missed mistake he will make again next week.
 MIN_SPAN_CONFIDENCE = 0.55
 
 
