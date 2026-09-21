@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Calliope{% endblock %}</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin:0; background:#14161a; color:#e8e6e3; font:15px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
+main { max-width:900px; margin:0 auto; padding:2rem 1.25rem 5rem; }
+a { color:#8ab4f8; }
+nav { border-bottom:1px solid #2a2e35; padding:.9rem 1.25rem; display:flex; gap:1.25rem; align-items:baseline; }
+nav .brand { font-weight:700; letter-spacing:.02em; }
+h1 { font-size:1.35rem; margin:0 0 .3rem; }
+h2 { font-size:1rem; margin:2.2rem 0 .6rem; color:#b9c0cc; text-transform:uppercase; letter-spacing:.08em; }
+p.lede { color:#9aa1ad; margin:.2rem 0 1.4rem; }
+.grid { display:grid; gap:1rem; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); }
+.card { border:1px solid #2a2e35; border-radius:6px; padding:.9rem 1rem; background:#181b20; }
+.card h3 { margin:0 0 .35rem; font-size:.8rem; color:#9aa1ad; font-weight:500; text-transform:uppercase; letter-spacing:.06em; }
+.value { font-size:1.6rem; }
+.spark { width:100%; height:48px; color:#8ab4f8; display:block; margin-top:.4rem; }
+table { border-collapse:collapse; width:100%; }
+th,td { text-align:left; padding:.45rem .6rem; border-bottom:1px solid #23272e; vertical-align:top; }
+th { color:#9aa1ad; font-weight:500; font-size:.8rem; text-transform:uppercase; letter-spacing:.06em; }
+code, .said { background:#20242b; padding:.1rem .35rem; border-radius:3px; }
+.wrong { color:#f0a6a6; }
+.right { color:#a6e3a1; }
+button { font:inherit; background:#2b3138; color:#e8e6e3; border:1px solid #3a424c; border-radius:5px; padding:.5rem .9rem; cursor:pointer; }
+button:hover { background:#353c45; }
+button[disabled] { opacity:.45; cursor:default; }
+.muted { color:#7c8595; }
+.warn { border-left:3px solid #d8a657; padding-left:.8rem; color:#d8a657; }
+fieldset { border:1px solid #2a2e35; border-radius:6px; margin:0 0 1.2rem; padding:1rem; }
+legend { color:#9aa1ad; padding:0 .4rem; }
+label { display:block; padding:.15rem 0; cursor:pointer; }
+</style>
+</head>
+<body>
+<nav>
+  <span class="brand">Calliope</span>
+  <a href="/">progress</a>
+  <a href="/record">record</a>
+  <a href="/review">review</a>
+  <a href="/placement">placement</a>
+</nav>
+<main>
+{% block body %}{% endblock %}
+</main>
+</body>
+</html>

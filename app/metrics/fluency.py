@@ -387,3 +387,22 @@ def measure(transcript: Transcript) -> FluencyMetrics:
         ),
         pauses=pause_profile(transcript.words),
     )
+
+
+def metrics_from(payload: dict[str, Any]) -> FluencyMetrics:
+    """Rebuild a measurement that was stored as JSON.
+
+    Needed because the placement exam scores a recording that was
+    measured on a different day. Reading the stored numbers, rather than
+    re-measuring, keeps the baseline exactly as it was taken -- which is
+    the entire point of having a baseline.
+    """
+    pauses = payload.get("pauses")
+    return FluencyMetrics(
+        **{
+            **payload,
+            "pauses": PauseProfile(**pauses) if pauses else None,
+            "tenses_used": tuple(payload.get("tenses_used") or ()),
+            "tenses_absent": tuple(payload.get("tenses_absent") or ()),
+        }
+    )

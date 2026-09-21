@@ -129,7 +129,12 @@ def session_id_for(audio: bytes) -> str:
 
 def connect(path: Path) -> sqlite3.Connection:
     path.parent.mkdir(parents=True, exist_ok=True)
-    connection = sqlite3.connect(path)
+    # `check_same_thread=False` because the web layer answers some
+    # requests from a thread pool. There is one user and every write is a
+    # single statement, so SQLite's own locking is the whole concurrency
+    # story; a connection pool would be machinery for a contention that
+    # cannot happen.
+    connection = sqlite3.connect(path, check_same_thread=False)
     connection.row_factory = sqlite3.Row
     connection.execute("PRAGMA foreign_keys = ON")
     connection.execute("PRAGMA journal_mode = WAL")
@@ -581,3 +586,12 @@ def mastery(connection: sqlite3.Connection) -> dict[str, int]:
         "lapsed": row["lapsed"],
         "unscheduled": row["total"] - counted,
     }
+
+
+def get_error(
+    connection: sqlite3.Connection, error_id: str
+) -> StoredError | None:
+    row = connection.execute(
+        "SELECT * FROM error WHERE id = ?", (error_id,)
+    ).fetchone()
+    return None if row is None else _as_error(row)

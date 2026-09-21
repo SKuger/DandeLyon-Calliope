@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Session — Calliope{% endblock %}
+{% block body %}
+
+<h1>{{ session.recorded_at[:16] | replace("T", " ") }}</h1>
+<p class="lede">
+  {{ session.kind }}{% if session.prompt_id %} · {{ session.prompt_id }}{% endif %}
+  · transcribed by <code>{{ transcript.model }}</code> decoding
+  <code>{{ transcript.decoding }}</code>
+</p>
+
+<h2>What was heard</h2>
+<p class="said">{{ transcript.text or "(nothing)" }}</p>
+<p class="muted">
+  Verbatim, including the mistakes. The decoding settings above are the
+  ones measured to repair the fewest of them.
+</p>
+
+<h2>Numbers</h2>
+<div class="grid">
+  {% for name, label in [
+      ("words_per_minute", "Words per minute"),
+      ("mean_utterance_words", "Words per utterance"),
+      ("lexical_diversity", "Lexical diversity"),
+      ("fillers_per_minute", "Fillers per minute"),
+      ("spanish_crutches_per_minute", "Spanish per minute"),
+      ("self_corrections", "Restarts")] %}
+  <div class="card">
+    <h3>{{ label }}</h3>
+    <div class="value">
+      {% if metrics.get(name) is none %}<span class="muted">not measurable</span>
+      {% else %}{{ metrics.get(name) }}{% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% if metrics.get("pauses") %}
+<p class="muted">
+  {{ metrics.pauses.count }} pauses, {{ metrics.pauses.within_utterance }} of
+  them inside a clause. Longest {{ metrics.pauses.longest_seconds }}s.
+</p>
+{% endif %}
+
+{% if metrics.get("tenses_absent") %}
+<h2>Not used at all</h2>
+<p>{{ metrics.tenses_absent | join(", ") }}</p>
+{% endif %}
+
+<h2>Corrections</h2>
+{% if errors %}
+<table>
+  <tr><th>Said</th><th>Should be</th><th>Why</th></tr>
+  {% for error in errors %}
+  <tr>
+    <td class="wrong">{{ error.original }}</td>
+    <td class="right">{{ error.correction }}</td>
+    <td>{{ error.explanation }}<br><span class="muted">{{ error.detector }}</span></td>
+  </tr>
+  {% endfor %}
+</table>
+<p class="muted">
+  Each of these is now a card in the review queue, due this evening.
+</p>
+{% else %}
+<p class="muted">
+  Nothing flagged. Either it was clean, or the recogniser was not confident
+  enough about the words to correct them -- a correction of something he
+  did not say is worse than a missed mistake.
+</p>
+{% endif %}
+
+{% endblock %}
