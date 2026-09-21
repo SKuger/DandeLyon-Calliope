@@ -125,13 +125,23 @@ class SapiVoice:
 
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory) / "turn.wav"
-            script = (
-                "Add-Type -AssemblyName System.Speech; "
-                "$plan = Get-Content -Raw -LiteralPath $args[0] | ConvertFrom-Json; "
-                "$s = New-Object System.Speech.Synthesis.SpeechSynthesizer; "
-                "$s.SelectVoice($plan.voice); $s.Rate = [int]$plan.rate; "
-                "$s.SetOutputToWaveFile($plan.path); $s.Speak($plan.text); "
-                "$s.SetOutputToNull(); $s.Dispose()"
+            # A script file rather than -Command: with -Command, trailing
+            # arguments are appended to the command text instead of
+            # becoming $args, and the JSON path lands in the middle of a
+            # statement as a parse error.
+            script = Path(directory) / "speak.ps1"
+            script.write_text(
+                "$ErrorActionPreference = 'Stop'\n"
+                "Add-Type -AssemblyName System.Speech\n"
+                "$plan = Get-Content -Raw -LiteralPath $args[0] | ConvertFrom-Json\n"
+                "$s = New-Object System.Speech.Synthesis.SpeechSynthesizer\n"
+                "$s.SelectVoice($plan.voice)\n"
+                "$s.Rate = [int]$plan.rate\n"
+                "$s.SetOutputToWaveFile($plan.path)\n"
+                "$s.Speak($plan.text)\n"
+                "$s.SetOutputToNull()\n"
+                "$s.Dispose()\n",
+                encoding="utf-8",
             )
             plan = Path(directory) / "plan.json"
             plan.write_text(
@@ -146,7 +156,8 @@ class SapiVoice:
                 encoding="utf-8",
             )
             done = subprocess.run(
-                [host, "-NoProfile", "-Command", script, str(plan)],
+                [host, "-NoProfile", "-ExecutionPolicy", "Bypass",
+                 "-File", str(script), str(plan)],
                 capture_output=True,
                 text=True,
                 timeout=self._timeout,
