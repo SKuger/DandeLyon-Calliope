@@ -177,7 +177,10 @@ class ScriptedTranscriber:
 
 
 def load_transcript(path: Path) -> Transcript:
-    raw = json.loads(path.read_text(encoding="utf-8"))
+    return transcript_from_payload(json.loads(path.read_text(encoding="utf-8")))
+
+
+def transcript_from_payload(raw: dict[str, Any]) -> Transcript:
     words = tuple(
         Word(
             text=word["text"],
