@@ -16,13 +16,15 @@ take the upload, hand it over, and redirect.
 
 from __future__ import annotations
 
+import json
 import logging
+from base64 import b64encode
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from hashlib import sha256
 from pathlib import Path
 
-from fastapi import APIRouter, FastAPI, Form, Request, UploadFile
+from fastapi import APIRouter, BackgroundTasks, FastAPI, Form, Request, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
@@ -30,6 +32,7 @@ from app.asr.base import ScriptedTranscriber, TranscriptionError
 from app.assess.base import NullAssessor
 from app.assess.rules import RuleBasedAssessor
 from app.config import Settings, settings
+from app.conversation.turn import ScriptedReplier, SilentVoice, take_turn
 from app.history import habits
 from app.metrics.fluency import TRACKED_TENSES, metrics_from
 from app.pipeline import MergingAssessor, process, store_recording
@@ -114,6 +117,36 @@ def build_assessor(config: Settings):
     return model if config.assessor == "claude" else MergingAssessor([rules, model])
 
 
+def build_replier(config: Settings):
+    """A model if one is configured, the scripted partner otherwise.
+
+    The scripted one is not a tutor and does not pretend to be. It keeps
+    the conversation moving so the loop and its timings work with no key.
+    """
+    if not config.anthropic_api_key or config.replier == "scripted":
+        return ScriptedReplier()
+
+    from app.conversation.claude import ClaudeReplier
+
+    return ClaudeReplier(config.anthropic_api_key, config.model)
+
+
+def build_voice(config: Settings):
+    """Piper if a voice file is configured, SAPI on Windows if asked for,
+    silence otherwise -- always with silence behind it, because a missing
+    voice file should cost the audio and not the turn."""
+    silent = SilentVoice()
+    if config.voice == "piper" and config.piper_model:
+        from app.conversation.voices import FallbackVoice, PiperVoice
+
+        return FallbackVoice(PiperVoice(config.piper_model), silent)
+    if config.voice == "sapi":
+        from app.conversation.voices import FallbackVoice, SapiVoice
+
+        return FallbackVoice(SapiVoice(config.sapi_voice), silent)
+    return silent
+
+
 def create_app(config: Settings | None = None, **parts) -> FastAPI:
     """Build the app, with every collaborator replaceable.
 
@@ -138,6 +171,8 @@ def create_app(config: Settings | None = None, **parts) -> FastAPI:
         )
         app.state.assessor = parts.get("assessor") or build_assessor(chosen)
         app.state.scheduler = parts.get("scheduler") or SM2Scheduler()
+        app.state.replier = parts.get("replier") or build_replier(chosen)
+        app.state.voice = parts.get("voice") or build_voice(chosen)
         app.state.exam = load_exam(
             EXAM_DIR / f"exam_{chosen.exam_version}.json"
         )
@@ -316,6 +351,80 @@ async def review_attempt(request: Request, error_id: str, audio: UploadFile):
             "next_due": get_review(db, error_id).due_at,
         }
     )
+
+
+@router.get("/talk", response_class=HTMLResponse)
+async def talk(request: Request):
+    return TEMPLATES.TemplateResponse(request, "talk.html", {})
+
+
+@router.post("/talk")
+async def talk_turn(
+    request: Request, background: BackgroundTasks, audio: UploadFile,
+    history: str = Form(default="[]"),
+):
+    """Answer inside the latency budget, then do the bookkeeping.
+
+    The same shape as the sibling project's webhook: reply first,
+    background the slow work. Here the deadline is a person waiting to
+    hear something rather than a provider waiting for a 200, but the
+    consequence of missing it is the same -- it stops feeling like a
+    conversation.
+    """
+    config: Settings = request.app.state.settings
+    payload = await audio.read()
+    if not payload:
+        return JSONResponse({"error": "empty recording"}, status_code=400)
+
+    path = store_recording(
+        config.recordings_dir / "talk", audio.filename or "blob.webm", payload
+    )
+    try:
+        turns = json.loads(history)
+        earlier = [(str(role), str(text)) for role, text in turns][-6:]
+    except (ValueError, TypeError):
+        earlier = []
+
+    try:
+        turn = await take_turn(
+            path,
+            transcriber=request.app.state.transcriber,
+            replier=request.app.state.replier,
+            voice=request.app.state.voice,
+            history=earlier,
+        )
+    except TranscriptionError as exc:
+        return JSONResponse({"error": str(exc)}, status_code=503)
+
+    # Assessment and storage happen after he has been answered. They feed
+    # the corpus, and nothing about them needs to happen inside the two
+    # seconds.
+    background.add_task(
+        _ingest_turn, request.app, path,
+    )
+
+    return JSONResponse(
+        {
+            "heard": turn.heard.text,
+            "said": turn.said,
+            "audio": b64encode(turn.audio).decode("ascii"),
+            "timing": turn.timing.as_dict(),
+        }
+    )
+
+
+async def _ingest_turn(app: FastAPI, path: Path) -> None:
+    try:
+        await process(
+            app.state.db,
+            audio=path,
+            transcriber=app.state.transcriber,
+            assessor=app.state.assessor,
+            scheduler=app.state.scheduler,
+            kind="conversation",
+        )
+    except Exception as exc:  # noqa: BLE001 - nothing above can catch this
+        logger.warning("could not ingest a conversation turn: %s", exc)
 
 
 @router.get("/placement", response_class=HTMLResponse)

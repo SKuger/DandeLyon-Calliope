@@ -43,6 +43,17 @@ class Settings:
 
     exam_version: str = os.getenv("EXAM_VERSION", "v1")
 
+    replier: str = os.getenv("REPLIER", "claude")
+    """Who answers in conversation mode: `claude` when a key is set, or
+    `scripted` to force the offline partner."""
+
+    voice: str = os.getenv("VOICE", "silent")
+    """`silent`, `piper` or `sapi`. Silent by default so the turn loop
+    works with nothing downloaded; a real voice is one variable away."""
+
+    piper_model: str = os.getenv("PIPER_MODEL", "")
+    sapi_voice: str = os.getenv("SAPI_VOICE", "Microsoft Zira Desktop")
+
     @property
     def db_path(self) -> Path:
         return self.data_dir / "calliope.db"
@@ -51,8 +62,15 @@ class Settings:
     def uses_a_model(self) -> bool:
         """Whether anything in this configuration sends text off the
         machine. Surfaced on the dashboard, because "local by default" is
-        a claim the user should be able to check rather than trust."""
-        return bool(self.anthropic_api_key) and self.assessor in ("claude", "both")
+        a claim the user should be able to check rather than trust.
+
+        Conversation counts. It was left out of this in the first draft,
+        which would have shown "nothing leaves this machine" on a
+        configuration that sends every spoken turn to an API.
+        """
+        if not self.anthropic_api_key:
+            return False
+        return self.assessor in ("claude", "both") or self.replier == "claude"
 
 
 settings = Settings()

@@ -273,3 +273,62 @@ def test_both_assessors_merge_when_a_key_is_present(config):
     )
 
     assert assessor.name == "merged"
+
+
+# --- conversation --------------------------------------------------------
+
+
+def test_the_talk_page_is_honest_about_push_to_talk(client):
+    body = client.get("/talk").text
+
+    assert "Hold to talk" in body
+
+
+def test_a_turn_answers_with_audio_and_its_timing(client):
+    response = client.post(
+        "/talk",
+        files={"audio": ("turn.webm", b"turn-audio", "audio/webm")},
+        data={"history": "[]"},
+    )
+    payload = response.json()
+
+    assert payload["heard"].startswith("I am responsible")
+    assert payload["said"]
+    assert payload["audio"]
+    assert set(payload["timing"]) >= {"asr_ms", "llm_ms", "tts_ms", "total_ms"}
+
+
+def test_a_conversation_turn_is_not_charted_as_practice(client, db):
+    client.post(
+        "/talk",
+        files={"audio": ("turn.webm", b"turn-audio", "audio/webm")},
+        data={"history": "[]"},
+    )
+
+    # Conversation turns are short by nature. Averaged into the practice
+    # series they would drag words-per-utterance down and look like
+    # regression.
+    from app.store import metric_series
+
+    assert metric_series(db, "words_per_minute", kind="practice") == []
+    assert len(sessions(db, kind="conversation")) == 1
+
+
+def test_a_corrupt_history_does_not_lose_the_turn(client):
+    response = client.post(
+        "/talk",
+        files={"audio": ("turn.webm", b"turn-audio", "audio/webm")},
+        data={"history": "not json"},
+    )
+
+    assert response.status_code == 200
+
+
+def test_an_empty_turn_is_refused(client):
+    response = client.post(
+        "/talk",
+        files={"audio": ("turn.webm", b"", "audio/webm")},
+        data={"history": "[]"},
+    )
+
+    assert response.status_code == 400

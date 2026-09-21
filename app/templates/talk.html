@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Talk — Calliope{% endblock %}
+{% block body %}
+
+<h1>Talk</h1>
+<p class="lede">
+  Nothing here corrects you. The corrections come afterwards, from the
+  transcript — being corrected mid-sentence is what makes people stop
+  talking. Every turn is timed, and the timing is shown.
+</p>
+
+<p>
+  <button id="push">Hold to talk</button>
+  <span id="state" class="muted">Ready.</span>
+</p>
+
+<table id="turns"></table>
+<audio id="player" hidden></audio>
+
+<script>
+// Push to talk rather than voice activity detection. Deciding when
+// someone has stopped speaking needs the audio stream, and getting it
+// wrong means cutting off a man reaching for a word in his second
+// language. A button is honest about not solving that yet.
+let recorder, chunks = [], history = [];
+const push = document.getElementById("push");
+const state = document.getElementById("state");
+const turns = document.getElementById("turns");
+
+async function begin() {
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  recorder = new MediaRecorder(stream);
+  chunks = [];
+  recorder.ondataavailable = (event) => chunks.push(event.data);
+  recorder.onstop = send;
+  recorder.start();
+  state.textContent = "Listening.";
+}
+
+function end() {
+  if (!recorder || recorder.state !== "recording") return;
+  state.textContent = "Thinking.";
+  recorder.stop();
+  recorder.stream.getTracks().forEach((track) => track.stop());
+}
+
+push.onmousedown = begin;
+push.onmouseup = end;
+push.ontouchstart = (event) => { event.preventDefault(); begin(); };
+push.ontouchend = (event) => { event.preventDefault(); end(); };
+
+async function send() {
+  const body = new FormData();
+  body.append("audio", new Blob(chunks, { type: "audio/webm" }), "turn.webm");
+  body.append("history", JSON.stringify(history));
+  const started = performance.now();
+  const response = await fetch("/talk", { method: "POST", body });
+  const payload = await response.json();
+  if (payload.error) {
+    state.textContent = payload.error;
+    return;
+  }
+  const round_trip = Math.round(performance.now() - started);
+
+  history.push(["user", payload.heard], ["assistant", payload.said]);
+
+  const row = turns.insertRow(0);
+  row.innerHTML =
+    "<td class='said'>" + payload.heard + "</td><td>" + payload.said +
+    "</td><td class='" + (payload.timing.within_budget ? "right" : "wrong") +
+    "'>" + payload.timing.total_ms + "ms<br><span class='muted'>asr " +
+    payload.timing.asr_ms + " · llm " + payload.timing.llm_ms + " · tts " +
+    payload.timing.tts_ms + "<br>round trip " + round_trip + "ms</span></td>";
+
+  const player = document.getElementById("player");
+  player.src = "data:audio/wav;base64," + payload.audio;
+  player.play().catch(() => {});
+  state.textContent = "Ready.";
+}
+</script>
+
+{% endblock %}
