@@ -11,16 +11,18 @@ from pathlib import Path
 import pytest
 
 from app.asr.base import Transcript, Word
-from experiments.whisper_fidelity.score import (
-    Outcome,
-    Sample,
-    classify,
+from app.text import (
     find_span,
-    load_samples,
     normalize,
     span_confidence,
     spell_number,
     word_error_rate,
+)
+from experiments.whisper_fidelity.score import (
+    Outcome,
+    Sample,
+    classify,
+    load_samples,
 )
 
 FIXTURE = (
