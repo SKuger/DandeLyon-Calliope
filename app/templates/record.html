@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Record — Calliope{% endblock %}
+{% block body %}
+
+<h1>Record</h1>
+<p class="lede">
+  Speak for the whole time and do not prepare. A rehearsed answer in March
+  cannot be compared with an unrehearsed one in September.
+</p>
+
+<fieldset>
+  <legend>Prompt</legend>
+  <select id="prompt">
+    <option value="">Free speech — talk about your day</option>
+    {% for item in prompts %}
+    <option value="{{ item.id }}">{{ item.prompt }} ({{ item.seconds }}s)</option>
+    {% endfor %}
+  </select>
+</fieldset>
+
+<p>
+  <button id="start">Start recording</button>
+  <button id="stop" disabled>Stop and upload</button>
+  <span id="clock" class="muted"></span>
+</p>
+<p id="status" class="muted">The audio is stored on this machine and uploaded to this process only.</p>
+
+<script>
+// The whole frontend. It records, it uploads, it redirects. Everything
+// that decides anything runs on the server, where it can be tested.
+let recorder, chunks = [], started = 0, ticker;
+const status = document.getElementById("status");
+const clock = document.getElementById("clock");
+
+document.getElementById("start").onclick = async () => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    recorder = new MediaRecorder(stream);
+    chunks = [];
+    recorder.ondataavailable = (event) => chunks.push(event.data);
+    recorder.onstop = upload;
+    recorder.start();
+    started = Date.now();
+    ticker = setInterval(() => {
+      clock.textContent = Math.round((Date.now() - started) / 1000) + "s";
+    }, 250);
+    document.getElementById("start").disabled = true;
+    document.getElementById("stop").disabled = false;
+    status.textContent = "Recording.";
+  } catch (error) {
+    status.textContent = "No microphone: " + error.message;
+  }
+};
+
+document.getElementById("stop").onclick = () => {
+  clearInterval(ticker);
+  document.getElementById("stop").disabled = true;
+  status.textContent = "Transcribing. On a cold start the model loads first.";
+  recorder.stop();
+  recorder.stream.getTracks().forEach((track) => track.stop());
+};
+
+async function upload() {
+  const body = new FormData();
+  body.append("audio", new Blob(chunks, { type: "audio/webm" }), "session.webm");
+  body.append("prompt_id", document.getElementById("prompt").value);
+  const response = await fetch("/sessions", { method: "POST", body });
+  if (response.redirected) {
+    window.location = response.url;
+    return;
+  }
+  const payload = await response.json().catch(() => ({}));
+  status.textContent = payload.error || ("Upload failed: " + response.status);
+  document.getElementById("start").disabled = false;
+}
+</script>
+
+{% endblock %}

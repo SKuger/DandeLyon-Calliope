@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Review — Calliope{% endblock %}
+{% block body %}
+
+<h1>Review</h1>
+<p class="lede">
+  {{ remaining }} due. Every one of these is a sentence you actually said.
+</p>
+
+{% if not exercises %}
+<p class="muted">Nothing due. <a href="/record">Record something</a>.</p>
+{% endif %}
+
+{% for exercise in exercises %}
+<fieldset data-error="{{ exercise.error_id }}" data-target="{{ exercise.target }}">
+  <legend>{{ exercise.category }} · {{ exercise.kind }}</legend>
+  <p>{{ exercise.prompt | spoken }}</p>
+  <p>
+    <button class="start">Record answer</button>
+    <button class="stop" disabled>Stop</button>
+    <span class="result muted"></span>
+  </p>
+  <p class="explanation muted" hidden>{{ exercise.explanation }}</p>
+</fieldset>
+{% endfor %}
+
+<script>
+// One recorder per card, so an answer is tied to the card it answers.
+document.querySelectorAll("fieldset[data-error]").forEach((card) => {
+  let recorder, chunks = [];
+  const result = card.querySelector(".result");
+  const start = card.querySelector(".start");
+  const stop = card.querySelector(".stop");
+
+  start.onclick = async () => {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    recorder = new MediaRecorder(stream);
+    chunks = [];
+    recorder.ondataavailable = (event) => chunks.push(event.data);
+    recorder.onstop = send;
+    recorder.start();
+    start.disabled = true;
+    stop.disabled = false;
+    result.textContent = "Recording.";
+  };
+
+  stop.onclick = () => {
+    stop.disabled = true;
+    result.textContent = "Checking.";
+    recorder.stop();
+    recorder.stream.getTracks().forEach((track) => track.stop());
+  };
+
+  async function send() {
+    const body = new FormData();
+    body.append("audio", new Blob(chunks, { type: "audio/webm" }), "attempt.webm");
+    const response = await fetch("/review/" + card.dataset.error, {
+      method: "POST", body,
+    });
+    const payload = await response.json();
+    if (payload.error) {
+      result.textContent = payload.error;
+      start.disabled = false;
+      return;
+    }
+    // The grade decides the interval, and it is computed from rules, not
+    // from a model's impression of the attempt.
+    const verdict = ["nothing", "same mistake", "same kind of mistake",
+                     "avoided it", "right, hesitant", "right"][payload.grade];
+    result.textContent = verdict + " — heard: “" + payload.heard +
+      "” — back on " + payload.next_due.slice(0, 10);
+    card.querySelector(".explanation").hidden = false;
+  }
+});
+</script>
+
+{% endblock %}

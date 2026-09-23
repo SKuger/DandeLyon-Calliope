@@ -1,0 +1,153 @@
+{
+  "version": 1,
+  "notes": [
+    "Sentences a Colombian backend developer would plausibly say at work,",
+    "each carrying exactly one planted error. One error per sample on",
+    "purpose: with two, a transcript that repairs one and keeps the other",
+    "cannot be scored without judgement, and judgement is what this",
+    "experiment is trying to avoid needing.",
+    "",
+    "`error` is the normalised substring that has to appear for the mistake",
+    "to have survived transcription. `repaired` lists the substrings that",
+    "mean Whisper wrote the grammatical form instead. Anything else is",
+    "reported verbatim as `other`, because a transcript that says neither",
+    "is an ASR failure and not a fidelity result.",
+    "",
+    "The controls are already correct. They measure the opposite risk: an",
+    "error the transcriber invents becomes a lesson about a mistake the",
+    "user never made."
+  ],
+  "samples": [
+    {
+      "id": "tense-past-simple",
+      "category": "verb_tense",
+      "spoken": "Yesterday I go to the office and I speak with my manager about the project.",
+      "error": "yesterday i go",
+      "repaired": ["yesterday i went", "yesterday i had gone"]
+    },
+    {
+      "id": "tense-present-perfect",
+      "category": "verb_tense",
+      "spoken": "Since three months I am learning about Kubernetes and Terraform.",
+      "error": "since three months i am learning",
+      "repaired": [
+        "for three months i have been learning",
+        "for the last three months i have been learning",
+        "for three months i am learning"
+      ]
+    },
+    {
+      "id": "calque-age",
+      "category": "spanish_calque",
+      "spoken": "I have twenty eight years and I work as a backend developer.",
+      "error": "i have twenty eight years",
+      "repaired": ["i am twenty eight", "i'm twenty eight"]
+    },
+    {
+      "id": "calque-word-order-adjective",
+      "category": "word_order",
+      "spoken": "I need to fix a problem very complex in the queue consumer.",
+      "error": "a problem very complex",
+      "repaired": ["a very complex problem"]
+    },
+    {
+      "id": "calque-word-order-question",
+      "category": "word_order",
+      "spoken": "Do you know where is the staging server?",
+      "error": "where is the staging server",
+      "repaired": ["where the staging server is"]
+    },
+    {
+      "id": "false-friend-assist",
+      "category": "false_friend",
+      "spoken": "I have to assist to the sprint review at nine in the morning.",
+      "error": "assist to the sprint review",
+      "repaired": ["attend the sprint review", "assist the sprint review"]
+    },
+    {
+      "id": "false-friend-sensible",
+      "category": "false_friend",
+      "spoken": "The client is very sensible about the response times.",
+      "error": "very sensible about",
+      "repaired": ["very sensitive about"],
+      "note": "sensible is an English word, so nothing forces a repair. Included as the case the transcript should keep and the assessor has to catch on meaning, not on grammar."
+    },
+    {
+      "id": "preposition-responsible",
+      "category": "preposition",
+      "spoken": "I am responsible of the deployment pipeline and the on call rotation.",
+      "error": "responsible of",
+      "repaired": ["responsible for"]
+    },
+    {
+      "id": "preposition-depend",
+      "category": "preposition",
+      "spoken": "We depend of a third party API for the payments.",
+      "error": "depend of",
+      "repaired": ["depend on"]
+    },
+    {
+      "id": "preposition-gerund",
+      "category": "preposition",
+      "spoken": "I am thinking to change my job this year.",
+      "error": "thinking to change",
+      "repaired": ["thinking of changing", "thinking about changing"]
+    },
+    {
+      "id": "agreement-third-person",
+      "category": "agreement",
+      "spoken": "My colleague work on the front end and I work on the API.",
+      "error": "colleague work on",
+      "repaired": ["colleague works on"]
+    },
+    {
+      "id": "article-omission",
+      "category": "article",
+      "spoken": "I am developer with six years of experience in Python.",
+      "error": "i am developer",
+      "repaired": ["i am a developer", "i'm a developer"]
+    },
+    {
+      "id": "uncountable-plural",
+      "category": "countability",
+      "spoken": "I need more informations about the incident of last night.",
+      "error": "more informations",
+      "repaired": ["more information"]
+    },
+    {
+      "id": "double-negative",
+      "category": "negation",
+      "spoken": "I don't have no experience with Kafka.",
+      "error": "have no experience",
+      "repaired": ["have any experience", "don't have experience"]
+    },
+    {
+      "id": "control-standup",
+      "category": "control",
+      "spoken": "This morning I reviewed two pull requests and deployed the new version to staging.",
+      "error": null,
+      "repaired": []
+    },
+    {
+      "id": "control-incident",
+      "category": "control",
+      "spoken": "The database was under heavy load, so the queue started to fall behind.",
+      "error": null,
+      "repaired": []
+    },
+    {
+      "id": "control-plan",
+      "category": "control",
+      "spoken": "Next week I want to finish the migration and write the documentation for it.",
+      "error": null,
+      "repaired": []
+    },
+    {
+      "id": "control-team",
+      "category": "control",
+      "spoken": "I lead a team of six engineers and we release every Thursday.",
+      "error": null,
+      "repaired": []
+    }
+  ]
+}

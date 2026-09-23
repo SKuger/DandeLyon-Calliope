@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}Progress — Calliope{% endblock %}
+{% block body %}
+
+<h1>Progress</h1>
+<p class="lede">
+  Every number here is arithmetic over a transcript. Nothing on this page
+  was rated by a model.
+  {% if settings.uses_a_model %}
+    <span class="warn">Assessment is sending transcript text to {{ settings.model }}.</span>
+  {% else %}
+    Nothing leaves this machine.
+  {% endif %}
+</p>
+
+<div class="grid">
+  <div class="card">
+    <h3>Sessions</h3>
+    <div class="value">{{ sessions | length }}</div>
+  </div>
+  <div class="card">
+    <h3>Due for review</h3>
+    <div class="value">{{ due }}</div>
+    {% if due %}<a href="/review">practise them</a>{% endif %}
+  </div>
+  <div class="card">
+    <h3>Corpus</h3>
+    <div class="value">{{ mastery.total }}</div>
+    <span class="muted">{{ mastery.mature }} stuck · {{ mastery.lapsed }} lost again</span>
+  </div>
+</div>
+
+<h2>Fluency over time</h2>
+{% if charts and charts[0][2] | length > 1 %}
+<div class="grid">
+  {% for label, svg, series in charts %}
+    {% if series | length > 1 %}
+    <div class="card">
+      <h3>{{ label }}</h3>
+      <div class="value">{{ series[-1][1] }}</div>
+      {{ svg | safe }}
+      <span class="muted">{{ series | length }} sessions · first {{ series[0][1] }}</span>
+    </div>
+    {% endif %}
+  {% endfor %}
+</div>
+{% else %}
+<p class="muted">
+  Two sessions are needed before a line means anything. One point is not a
+  trend, so nothing is drawn.
+</p>
+{% endif %}
+
+<h2>What he keeps getting wrong</h2>
+{% if habits %}
+<table>
+  <tr><th>Phrase</th><th>Category</th><th>Times</th><th>Last</th></tr>
+  {% for habit in habits %}
+  <tr>
+    <td class="wrong said">{{ habit.phrase | spoken }}</td>
+    <td>{{ habit.category }}</td>
+    <td>{{ habit.occurrences }}</td>
+    <td class="muted">{{ habit.last_seen[:10] }}</td>
+  </tr>
+  {% endfor %}
+</table>
+<p class="muted">Counted, not estimated: same phrase, same category, within {{ habits[0].within_days }} days.</p>
+{% else %}
+<p class="muted">Nothing repeated three times in the last fortnight.</p>
+{% endif %}
+
+{% if categories %}
+<h2>Error corpus by category</h2>
+<table>
+  {% for name, count in categories %}
+  <tr><td>{{ name }}</td><td>{{ count }}</td></tr>
+  {% endfor %}
+</table>
+{% endif %}
+
+<h2>Structures he avoided last session</h2>
+{% if avoided %}
+<p>{{ avoided | join(", ") }}</p>
+<p class="muted">A tense he never reaches for is as informative as one he uses badly.</p>
+{% else %}
+<p class="muted">Every tracked tense appeared.</p>
+{% endif %}
+
+<h2>Placement</h2>
+{% if placements %}
+<table>
+  <tr><th>Taken</th><th>Exam</th>{% for skill in placements[0].bands %}<th>{{ skill }}</th>{% endfor %}</tr>
+  {% for sitting in placements %}
+  <tr>
+    <td>{{ sitting.taken_at[:10] }}</td>
+    <td class="muted">{{ sitting.exam_version }}/{{ sitting.fingerprint }}</td>
+    {% for _, band in sitting.bands.items() %}<td>{{ band or "—" }}</td>{% endfor %}
+  </tr>
+  {% endfor %}
+</table>
+{% else %}
+<p class="muted">No baseline yet. <a href="/placement">Take the exam</a> before doing anything else.</p>
+{% endif %}
+
+<h2>Recent sessions</h2>
+<table>
+  {% for session in sessions %}
+  <tr>
+    <td><a href="/sessions/{{ session.id }}">{{ session.recorded_at[:16] | replace("T", " ") }}</a></td>
+    <td>{{ session.kind }}</td>
+    <td class="muted">{{ "%.0f" | format(session.duration) }}s</td>
+  </tr>
+  {% else %}
+  <tr><td class="muted">Nothing recorded yet. <a href="/record">Say something.</a></td></tr>
+  {% endfor %}
+</table>
+
+{% endblock %}

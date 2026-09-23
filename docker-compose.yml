@@ -1,0 +1,13 @@
+services:
+  calliope:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      # Both are gitignored and both stay on this machine. The database
+      # is small and the recordings are a person's voice; neither belongs
+      # inside an image layer.
+      - ./data:/app/data
+      - ./recordings:/app/recordings

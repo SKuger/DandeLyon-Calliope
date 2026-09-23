@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Placement — Calliope{% endblock %}
+{% block body %}
+
+<h1>Placement exam {{ exam.version }}</h1>
+<p class="lede">
+  Fingerprint <code>{{ exam.fingerprint }}</code>. This exam does not
+  change. Six months from now it will ask these same questions in this
+  same order, which is the only reason the two results can be compared.
+</p>
+
+{% if sittings %}
+<p class="muted">
+  Previously taken: {% for sitting in sittings %}{{ sitting.taken_at[:10] }}{% if not loop.last %}, {% endif %}{% endfor %}.
+</p>
+{% endif %}
+
+<form id="exam">
+{% for section in exam.sections %}
+  {% if section.kind in ("choice", "listening") %}
+  <fieldset>
+    <legend>{{ section.skill | replace("_", " ") }}</legend>
+    <p class="muted">{{ section.instructions }}</p>
+    {% for item in section.items %}
+      <p>
+        <strong>{{ loop.index }}.</strong>
+        {% if item.script %}<em class="muted">[audio] </em>{% endif %}
+        {{ item.prompt }}
+      </p>
+      {% for option in item.options %}
+      <label>
+        <input type="radio" name="{{ item.id }}" value="{{ loop.index0 }}">
+        {{ option }}
+      </label>
+      {% endfor %}
+    {% endfor %}
+  </fieldset>
+  {% else %}
+  <fieldset>
+    <legend>{{ section.skill | replace("_", " ") }}</legend>
+    <p class="muted">{{ section.instructions }}</p>
+    {% for item in section.items %}
+      <p>{{ loop.index }}. {{ item.prompt }} <span class="muted">({{ item.seconds }}s)</span></p>
+    {% endfor %}
+    <p class="muted">
+      Recorded through <a href="/record">the recorder</a>, so the baseline is
+      measured by exactly the same code as a Tuesday evening.
+    </p>
+  </fieldset>
+  {% endif %}
+{% endfor %}
+  <button type="submit">Score and save</button>
+</form>
+
+<pre id="result" class="muted"></pre>
+
+<script>
+document.getElementById("exam").onsubmit = async (event) => {
+  event.preventDefault();
+  const response = await fetch("/placement", {
+    method: "POST",
+    body: new FormData(event.target),
+  });
+  const payload = await response.json();
+  document.getElementById("result").textContent = JSON.stringify(payload, null, 2);
+};
+</script>
+
+{% endblock %}
